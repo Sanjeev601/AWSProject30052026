@@ -1,0 +1,127 @@
+# Write a CloudFormation Code to create an EC2 Instance with Public Subnet, Public IP and Security Group allowing RDP access Wwith IneternetGateway and Route Table and route to Internet Gatewayallowing internet access to the EC2 instanceaccess
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Write a CloudFormation Code to create an EC2 Instance with Public Subnet, Public IP and Security Group allowing RDP access Wwith IneternetGateway and Route Table and route to Internet Gatewayallowing internet access to the EC2 instanceaccess"
+
+# Create a new VPC
+Resources:
+  MyVPC01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      Tags:
+      - Key: Name
+        Value: MyVPC01
+
+  # Create a public subnet
+  MyPublicSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC01
+      CidrBlock: "10.0.1.0/24"
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: MyPublicSubnet01
+
+  # Create an Internet Gateway
+  MyInternetGateway01:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: MyInternetGateway01
+
+  # Attach the Internet Gateway to the VPC
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC01
+      InternetGatewayId: !Ref MyInternetGateway01
+
+  # Create a Route Table
+  MyRouteTable01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC01
+      Tags:
+      - Key: Name
+        Value: MyRouteTable01
+
+  # Create a route to the Internet Gateway
+  MyRouteToInternetGateway:
+    Type: AWS::EC2::Route
+    DependsOn: AttachInternetGateway
+    Properties:
+      RouteTableId: !Ref MyRouteTable01
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref MyInternetGateway01
+
+  # Associate the Route Table with the Public Subnet
+  AssociateRouteTableWithSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref MyPublicSubnet01
+      RouteTableId: !Ref MyRouteTable01
+
+  # Create a Security Group allowing RDP access
+  MySecurityGroup01:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow RDP access"
+      VpcId: !Ref MyVPC01
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3389
+        ToPort: 3389
+        CidrIp: "0.0.0.0/0"
+
+  # Create an EC2 instance
+  MyEC2Instance01:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-073ed03c725f813eb" # Amazon windows 2019 base
+      InstanceType: "t2.micro"
+      SubnetId: !Ref MyPublicSubnet01
+      SecurityGroupIds:
+      - !Ref MySecurityGroup01
+      Tags:
+      - Key: Name
+        Value: MyEC2Instance01
+      KeyName: "TestKeyPair08" # Replace with your key pair name 
+
+  # Additional EBS volumes for extra drives
+  MyAdditionalVolume1:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: us-east-1a
+      Size: 20
+      VolumeType: gp3
+      Tags:
+      - Key: Name
+        Value: MyAdditionalVolume1
+
+  MyAdditionalVolume2:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: us-east-1a
+      Size: 50
+      VolumeType: gp3
+      Tags:
+      - Key: Name
+        Value: MyAdditionalVolume2
+
+  AttachAdditionalDrive1:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/sdb
+      InstanceId: !Ref MyEC2Instance01
+      VolumeId: !Ref MyAdditionalVolume1
+
+  AttachAdditionalDrive2:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/sdc
+      InstanceId: !Ref MyEC2Instance01
+      VolumeId: !Ref MyAdditionalVolume2
