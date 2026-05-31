@@ -13,13 +13,19 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::084828603933:role/GitHubActionsRole03
+          role-to-assume: arn:aws:iam::084828603933:role/EC2-CloudFormation-Role
           role-session-name: GitHubActionsSession
           aws-region: us-east-1
       
       - name: Test AWS Credentials
         run: aws sts get-caller-identity
-      - name: Deploy CloudFormation stack
+      - name: Deploy IAM Role stack
+        run: |
+          aws cloudformation deploy \
+            --template-file IAMRole.yml \
+            --stack-name "GitHubActionsIAMRoleStack-${{ github.ref_name }}-${{ github.run_number }}" \
+            --capabilities CAPABILITY_NAMED_IAM
+      - name: Deploy EC2 CloudFormation stack
         run: |
           aws cloudformation deploy \
             --template-file EC2Instance1.yml \

@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "IAM Role with minimal permissions to create EC2 instances"
+
+Resources:
+  # IAM Role for EC2 Instance Creation
+  EC2CreationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "EC2-CloudFormation-Role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action: "sts:AssumeRole"
+      Tags:
+      - Key: Name
+        Value: EC2-CloudFormation-Role
+
+  # Minimal Inline Policy for EC2 Operations
+  EC2CreationPolicy:
+    Type: AWS::IAM::RolePolicy
+    Properties:
+      RoleName: !Ref EC2CreationRole
+      PolicyName: "MinimalEC2CreationPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        # EC2 Instance Operations
+        - Sid: "EC2InstanceOperations"
+          Effect: Allow
+          Action:
+          - "ec2:RunInstances"
+          - "ec2:TerminateInstances"
+          - "ec2:DescribeInstances"
+          - "ec2:DescribeInstanceAttribute"
+          - "ec2:ModifyInstanceAttribute"
+          - "ec2:DescribeImages"
+          - "ec2:DescribeImageAttribute"
+          Resource: "*"
+
+        # EBS Volume Operations
+        - Sid: "EBSVolumeOperations"
+          Effect: Allow
+          Action:
+          - "ec2:CreateVolume"
+          - "ec2:DeleteVolume"
+          - "ec2:DescribeVolumes"
+          - "ec2:AttachVolume"
+          - "ec2:DetachVolume"
+          - "ec2:DescribeVolumeStatus"
+          - "ec2:ModifyVolume"
+          Resource: "*"
+
+        # Tagging Operations
+        - Sid: "TaggingOperations"
+          Effect: Allow
+          Action:
+          - "ec2:CreateTags"
+          - "ec2:DeleteTags"
+          - "ec2:DescribeTags"
+          Resource: "*"
+
+        # Read-only Permission for Availability Zones
+        - Sid: "ReadOnlyAvailabilityZones"
+          Effect: Allow
+          Action:
+          - "ec2:DescribeAvailabilityZones"
+          Resource: "*"
+
+Outputs:
+  EC2CreationRoleArn:
+    Description: "ARN of the EC2 CloudFormation Role"
+    Value: !GetAtt EC2CreationRole.Arn
+    Export:
+      Name: "EC2CreationRoleArn"
+
+  EC2CreationRoleName:
+    Description: "Name of the EC2 CloudFormation Role"
+    Value: !Ref EC2CreationRole
+    Export:
+      Name: "EC2CreationRoleName"
