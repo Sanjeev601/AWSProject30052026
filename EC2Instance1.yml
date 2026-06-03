@@ -65,19 +65,20 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
 #       SubnetId: !Ref MyPublicSubnet01
 #       RouteTableId: !Ref MyRouteTable01
 
-  # # Create a Security Group allowing RDP access
-  # MySecurityGroup01:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupDescription: "Allow RDP access"
-  #     VpcId: !Ref MyVPC01
-  #     SecurityGroupIngress:
-  #     - IpProtocol: tcp
-  #       FromPort: 3389
-  #       ToPort: 3389
-  #       CidrIp: "0.0.0.0/0"
+# # Create a Security Group allowing RDP access
+# MySecurityGroup01:
+#   Type: AWS::EC2::SecurityGroup
+#   Properties:
+#     GroupDescription: "Allow RDP access"
+#     VpcId: !Ref MyVPC01
+#     SecurityGroupIngress:
+#     - IpProtocol: tcp
+#       FromPort: 3389
+#       ToPort: 3389
+#       CidrIp: "0.0.0.0/0"
 
-  # Create an EC2 instance
+# Create an EC2 instance
+Resources:
   MyEC2Instance03:
     Type: AWS::EC2::Instance
     Properties:
@@ -135,7 +136,5 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
     Type: AWS::EC2::VolumeAttachment
     Properties:
       Device: /dev/sdc
-      InstanceId: !Ref MyEC2Instance02
+      InstanceId: !Ref MyEC2Instance03
       VolumeId: !Ref MyAdditionalVolume6
-
-
