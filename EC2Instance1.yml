@@ -78,64 +78,65 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
   #       CidrIp: "0.0.0.0/0"
 
   # Create an EC2 instance
-  MyEC2Instance03:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: "ami-073ed03c725f813eb" # Amazon windows 2019 base
-      InstanceType: "t2.micro"
-      SubnetId: !Ref MyPublicSubnet01
-      SecurityGroupIds:
-      - !Ref MySecurityGroup01
-      Tags:
-      - Key: Name
-        Value: MyEC2Instance03
-      KeyName: "TestKeyPair08" # Replace with your key pair name
-      UserData:
-        Fn::Base64: |
-          <powershell>
-          $zipUrl = "https://kendralusts3bucket.s3.us-east-1.amazonaws.com/kendralust01.zip"
-          $zipPath = "C:\Temp\kendralust01.zip"
-          $extractPath = "C:\KendraLust"
-          New-Item -Path C:\Temp -ItemType Directory -Force | Out-Null
-          New-Item -Path $extractPath -ItemType Directory -Force | Out-Null
-          Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
-          Expand-Archive -LiteralPath $zipPath -DestinationPath $extractPath -Force
-          Write-Host "Downloaded and extracted $zipUrl to $extractPath"
-          </powershell> 
+  Resources:
+    MyEC2Instance03:
+      Type: AWS::EC2::Instance
+      Properties:
+        ImageId: "ami-073ed03c725f813eb" # Amazon windows 2019 base
+        InstanceType: "t2.micro"
+        SubnetId: !Ref MyPublicSubnet01
+        SecurityGroupIds:
+        - !Ref MySecurityGroup01
+        Tags:
+        - Key: Name
+          Value: MyEC2Instance03
+        KeyName: "TestKeyPair08" # Replace with your key pair name
+        UserData:
+          Fn::Base64: |
+            <powershell>
+            $zipUrl = "https://kendralusts3bucket.s3.us-east-1.amazonaws.com/kendralust01.zip"
+            $zipPath = "C:\Temp\kendralust01.zip"
+            $extractPath = "C:\KendraLust"
+            New-Item -Path C:\Temp -ItemType Directory -Force | Out-Null
+            New-Item -Path $extractPath -ItemType Directory -Force | Out-Null
+            Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+            Expand-Archive -LiteralPath $zipPath -DestinationPath $extractPath -Force
+            Write-Host "Downloaded and extracted $zipUrl to $extractPath"
+            </powershell> 
 
-  # Additional EBS volumes for extra drives
-  MyAdditionalVolume5:
-    Type: AWS::EC2::Volume
-    Properties:
-      AvailabilityZone: us-east-1a
-      Size: 20
-      VolumeType: gp3
-      Tags:
-      - Key: Name
-        Value: MyAdditionalVolume5
+    # Additional EBS volumes for extra drives
+    MyAdditionalVolume5:
+      Type: AWS::EC2::Volume
+      Properties:
+        AvailabilityZone: us-east-1a
+        Size: 20
+        VolumeType: gp3
+        Tags:
+        - Key: Name
+          Value: MyAdditionalVolume5
 
-  MyAdditionalVolume6:
-    Type: AWS::EC2::Volume
-    Properties:
-      AvailabilityZone: us-east-1a
-      Size: 50
-      VolumeType: gp3
-      Tags:
-      - Key: Name
-        Value: MyAdditionalVolume6
+    MyAdditionalVolume6:
+      Type: AWS::EC2::Volume
+      Properties:
+        AvailabilityZone: us-east-1a
+        Size: 50
+        VolumeType: gp3
+        Tags:
+        - Key: Name
+          Value: MyAdditionalVolume6
 
-  AttachAdditionalDrive5:
-    Type: AWS::EC2::VolumeAttachment
-    Properties:
-      Device: /dev/sdb
-      InstanceId: !Ref MyEC2Instance03
-      VolumeId: !Ref MyAdditionalVolume5
+    AttachAdditionalDrive5:
+      Type: AWS::EC2::VolumeAttachment
+      Properties:
+        Device: /dev/sdb
+        InstanceId: !Ref MyEC2Instance03
+        VolumeId: !Ref MyAdditionalVolume5
 
-  AttachAdditionalDrive6:
-    Type: AWS::EC2::VolumeAttachment
-    Properties:
-      Device: /dev/sdc
-      InstanceId: !Ref MyEC2Instance02
-      VolumeId: !Ref MyAdditionalVolume6
+    AttachAdditionalDrive6:
+      Type: AWS::EC2::VolumeAttachment
+      Properties:
+        Device: /dev/sdc
+        InstanceId: !Ref MyEC2Instance02
+        VolumeId: !Ref MyAdditionalVolume6
 
 
