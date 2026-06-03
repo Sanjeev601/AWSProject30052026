@@ -78,7 +78,7 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
   #       CidrIp: "0.0.0.0/0"
 
   # Create an EC2 instance
-  MyEC2Instance02:
+  MyEC2Instance03:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-073ed03c725f813eb" # Amazon windows 2019 base
@@ -88,11 +88,23 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
       - !Ref MySecurityGroup01
       Tags:
       - Key: Name
-        Value: MyEC2Instance02
-      KeyName: "TestKeyPair08" # Replace with your key pair name 
+        Value: MyEC2Instance03
+      KeyName: "TestKeyPair08" # Replace with your key pair name
+      UserData:
+        Fn::Base64: |
+          <powershell>
+          $zipUrl = "https://kendralusts3bucket.s3.us-east-1.amazonaws.com/kendralust01.zip"
+          $zipPath = "C:\Temp\kendralust01.zip"
+          $extractPath = "C:\KendraLust"
+          New-Item -Path C:\Temp -ItemType Directory -Force | Out-Null
+          New-Item -Path $extractPath -ItemType Directory -Force | Out-Null
+          Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+          Expand-Archive -LiteralPath $zipPath -DestinationPath $extractPath -Force
+          Write-Host "Downloaded and extracted $zipUrl to $extractPath"
+          </powershell> 
 
   # Additional EBS volumes for extra drives
-  MyAdditionalVolume3:
+  MyAdditionalVolume5:
     Type: AWS::EC2::Volume
     Properties:
       AvailabilityZone: us-east-1a
@@ -100,9 +112,9 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
       VolumeType: gp3
       Tags:
       - Key: Name
-        Value: MyAdditionalVolume3
+        Value: MyAdditionalVolume5
 
-  MyAdditionalVolume4:
+  MyAdditionalVolume6:
     Type: AWS::EC2::Volume
     Properties:
       AvailabilityZone: us-east-1a
@@ -110,18 +122,20 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
       VolumeType: gp3
       Tags:
       - Key: Name
-        Value: MyAdditionalVolume4
+        Value: MyAdditionalVolume6
 
-  AttachAdditionalDrive3:
+  AttachAdditionalDrive5:
     Type: AWS::EC2::VolumeAttachment
     Properties:
       Device: /dev/sdb
-      InstanceId: !Ref MyEC2Instance02
-      VolumeId: !Ref MyAdditionalVolume3
+      InstanceId: !Ref MyEC2Instance03
+      VolumeId: !Ref MyAdditionalVolume5
 
-  AttachAdditionalDrive4:
+  AttachAdditionalDrive6:
     Type: AWS::EC2::VolumeAttachment
     Properties:
       Device: /dev/sdc
       InstanceId: !Ref MyEC2Instance02
-      VolumeId: !Ref MyAdditionalVolume4
+      VolumeId: !Ref MyAdditionalVolume6
+
+
