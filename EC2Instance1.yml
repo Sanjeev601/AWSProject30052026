@@ -84,7 +84,7 @@ Resources:
     Properties:
       ImageId: "ami-073ed03c725f813eb" # Amazon windows 2019 base
       InstanceType: "t2.micro"
-      SubnetId: ssubnet-0f121bb7575067145 # replace with your existing public subnet ID
+      SubnetId: subnet-0f121bb7575067145 # replace with your existing public subnet ID
       SecurityGroupIds:
       - sg-0bee0c777de048f78 # replace with your existing security group ID
       Tags:
