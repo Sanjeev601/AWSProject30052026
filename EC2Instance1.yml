@@ -79,7 +79,7 @@ Description: "Write a CloudFormation Code to create an EC2 Instance with Public 
 
 # Create an EC2 instance
 Resources:
-  MyEC2Instance04:
+  MyEC2Instance05:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-073ed03c725f813eb" # Amazon windows 2019 base
@@ -89,19 +89,18 @@ Resources:
       - sg-0bee0c777de048f78 # replace with your existing security group ID
       Tags:
       - Key: Name
-        Value: MyEC2Instance04
+        Value: MyEC2Instance05
       KeyName: "TestKeyPair08" # Replace with your key pair name
       UserData:
         Fn::Base64: |
-          <powershell>
           $zipUrl = "https://kendralusts3bucket.s3.us-east-1.amazonaws.com/kendralust01.zip"
-          $zipDestination = "C:\"
+          $zipDestination = "C:\kendralust01.zip"
           Invoke-WebRequest -Uri $zipUrl -OutFile $zipDestination -UseBasicParsing
           Write-Host "Downloaded ZIP from $zipUrl to $zipDestination"
-          </powershell> 
+          </powershell>
 
   # Additional EBS volumes for extra drives
-  MyAdditionalVolume7:
+  MyAdditionalVolume10:
     Type: AWS::EC2::Volume
     Properties:
       AvailabilityZone: us-east-1a
@@ -109,9 +108,9 @@ Resources:
       VolumeType: gp3
       Tags:
       - Key: Name
-        Value: MyAdditionalVolume7
+        Value: MyAdditionalVolume10
 
-  MyAdditionalVolume8:
+  MyAdditionalVolume11:
     Type: AWS::EC2::Volume
     Properties:
       AvailabilityZone: us-east-1a
@@ -119,18 +118,18 @@ Resources:
       VolumeType: gp3
       Tags:
       - Key: Name
-        Value: MyAdditionalVolume8
+        Value: MyAdditionalVolume11
 
-  AttachAdditionalDrive9:
+  AttachAdditionalDrive12:
     Type: AWS::EC2::VolumeAttachment
     Properties:
       Device: /dev/sdb
-      InstanceId: !Ref MyEC2Instance04
-      VolumeId: !Ref MyAdditionalVolume7
+      InstanceId: !Ref MyEC2Instance05
+      VolumeId: !Ref MyAdditionalVolume10
 
-  AttachAdditionalDrive10:
+  AttachAdditionalDrive13:
     Type: AWS::EC2::VolumeAttachment
     Properties:
       Device: /dev/sdc
-      InstanceId: !Ref MyEC2Instance04
-      VolumeId: !Ref MyAdditionalVolume8
+      InstanceId: !Ref MyEC2Instance05
+      VolumeId: !Ref MyAdditionalVolume11
