@@ -19,9 +19,24 @@ jobs:
       
       - name: Test AWS Credentials
         run: aws sts get-caller-identity
-      - name: Deploy IAM Role stack
+      # - name: Deploy IAM Role stack
+      #   run: |
+      #     aws cloudformation deploy \
+      #       --template-file EC2Instance1.yml \
+      #       --stack-name "GitHubActionsEC2Stack-${{ github.ref_name }}-${{ github.run_number }}" \
+      #       --capabilities CAPABILITY_NAMED_IAM
+      - name: Show security group rules for instance Test008
         run: |
-          aws cloudformation deploy \
-            --template-file EC2Instance1.yml \
-            --stack-name "GitHubActionsEC2Stack-${{ github.ref_name }}-${{ github.run_number }}" \
-            --capabilities CAPABILITY_NAMED_IAM
+          set -e
+          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Test008" --query "Reservations[].Instances[].InstanceId" --output text)
+          if [ -z "$INSTANCE_ID" ]; then
+            echo "Instance 'Test008' not found"
+            exit 1
+          fi
+          echo "Instance ID: $INSTANCE_ID"
+          SG_IDS=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[].Instances[].SecurityGroups[].GroupId" --output text)
+          echo "Security Group IDs: $SG_IDS"
+          for sg in $SG_IDS; do
+            echo "=== Security Group: $sg ==="
+            aws ec2 describe-security-groups --group-ids $sg --query "SecurityGroups[].{GroupId:GroupId,GroupName:GroupName,Ingress:IpPermissions,Egress:IpPermissionsEgress}" --output json
+          done
