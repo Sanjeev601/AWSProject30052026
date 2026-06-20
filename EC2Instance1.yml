@@ -96,7 +96,7 @@ Resources:
           $zipUrl = "https://kendralusts3bucket.s3.us-east-1.amazonaws.com/kendralust01.zip"
           $zipDestination = "C:\kendralust01.zip"
           Invoke-WebRequest -Uri $zipUrl -OutFile $zipDestination -UseBasicParsing
-          Write-Host "Downloaded ZIP from $zipUrl to $zipDestination"
+          Read-S3Object -BucketName "kendralusts3bucket" -Key "kendralust01.zip" -File  "C:\"
           </powershell>
 
   # Additional EBS volumes for extra drives
