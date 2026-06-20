@@ -47,3 +47,32 @@ jobs:
             echo "--- EGRESS RULES ---"
             aws ec2 describe-security-groups --group-ids "$sg" --query "SecurityGroups[0].IpPermissionsEgress" --output json | jq -r '.[] as $p | ($p.IpProtocol//"all") as $proto | ($p.FromPort//"all") as $from | ($p.ToPort//"all") as $to | ( ([$p.IpRanges[]?.CidrIp]//[]) + ([$p.UserIdGroupPairs[]?.GroupId]//[]) + ([$p.PrefixListIds[]?.PrefixListId]//[]) ) as $dests | (if ($dests|length)==0 then ["-"] else $dests end)[] | [$proto,$from,$to,.] | @tsv' | column -t -s $'\t' | awk 'BEGIN{print "Protocol\tFromPort\tToPort\tDestination"} {print}'
           done
+
+      - name: Export security group rules to CSV
+        run: |
+          set -euo pipefail
+          mkdir -p security-group-reports
+          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Test008" --query "Reservations[].Instances[].InstanceId" --output text)
+          SG_IDS=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" --query "Reservations[].Instances[].SecurityGroups[].GroupId" --output text)
+          
+          for sg in $SG_IDS; do
+            # Export Ingress rules to CSV
+            echo "SecurityGroupId,Protocol,FromPort,ToPort,Source" > "security-group-reports/${sg}_ingress.csv"
+            aws ec2 describe-security-groups --group-ids "$sg" --query "SecurityGroups[0].IpPermissions" --output json | jq -r '.[] as $p | ($p.IpProtocol//"all") as $proto | ($p.FromPort//"all") as $from | ($p.ToPort//"all") as $to | ( ([$p.IpRanges[]?.CidrIp]//[]) + ([$p.UserIdGroupPairs[]?.GroupId]//[]) + ([$p.PrefixListIds[]?.PrefixListId]//[]) ) as $sources | (if ($sources|length)==0 then ["-"] else $sources end)[] | "\"'$sg'\",\"\($proto)\",\"\($from)\",\"\($to)\",\(.)"' >> "security-group-reports/${sg}_ingress.csv"
+            
+            # Export Egress rules to CSV
+            echo "SecurityGroupId,Protocol,FromPort,ToPort,Destination" > "security-group-reports/${sg}_egress.csv"
+            aws ec2 describe-security-groups --group-ids "$sg" --query "SecurityGroups[0].IpPermissionsEgress" --output json | jq -r '.[] as $p | ($p.IpProtocol//"all") as $proto | ($p.FromPort//"all") as $from | ($p.ToPort//"all") as $to | ( ([$p.IpRanges[]?.CidrIp]//[]) + ([$p.UserIdGroupPairs[]?.GroupId]//[]) + ([$p.PrefixListIds[]?.PrefixListId]//[]) ) as $dests | (if ($dests|length)==0 then ["-"] else $dests end)[] | "\"'$sg'\",\"\($proto)\",\"\($from)\",\"\($to)\",\(.)"' >> "security-group-reports/${sg}_egress.csv"
+            
+            echo "✓ CSV files created: ${sg}_ingress.csv and ${sg}_egress.csv"
+          done
+          
+          echo "CSV reports saved in security-group-reports/"
+          ls -lah security-group-reports/
+
+      - name: Upload CSV reports as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-group-reports
+          path: security-group-reports/
